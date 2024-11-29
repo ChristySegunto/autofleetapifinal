@@ -54,15 +54,7 @@ public class AutoFleetDbContext : DbContext
             .ToTable("renter")
             .HasKey(r => r.renter_id);
 
-        modelBuilder.Entity<Renter>()
-            .HasOne(r => r.User)  // renter has one User
-            .WithOne()            // One User corresponds to one renter (assuming one-to-one relationship)
-            .HasForeignKey<Renter>(r => r.user_id); // renter's user_id is the foreign key referencing User's user_id
-        
-        modelBuilder.Entity<Renter>()
-            .HasMany(r => r.RentedVehicles) // A renter can have many rented vehicles
-            .WithOne(rv => rv.Renter)       // A rented vehicle belongs to one renter
-            .HasForeignKey(rv => rv.renter_id);
+      
 
     //RENTED VEHICLE
         modelBuilder.Entity<RentedVehicle>()
@@ -74,22 +66,14 @@ public class AutoFleetDbContext : DbContext
             .WithMany()               // A Vehicle can be rented multiple times
             .HasForeignKey(rv => rv.vehicle_id);
 
-        modelBuilder.Entity<RentedVehicle>()
-            .HasOne(rv => rv.Renter)
-            .WithMany(r => r.RentedVehicles)
-            .HasForeignKey(rv => rv.renter_id)
-            .OnDelete(DeleteBehavior.Restrict);
+       
             
     //CAR UPDATE
         modelBuilder.Entity<CarUpdate>()
             .ToTable("realtime_carupdate")
             .HasKey(cu => cu.carupdate_id);
         
-        modelBuilder.Entity<CarUpdate>()
-            .HasOne(cu => cu.Renter)
-            .WithMany(r => r.CarUpdates)
-            .HasForeignKey(cu => cu.renter_id)
-            .OnDelete(DeleteBehavior.Restrict);
+       
 
         modelBuilder.Entity<CarUpdate>()
             .Property(c => c.location_latitude)
