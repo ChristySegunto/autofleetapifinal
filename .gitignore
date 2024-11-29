@@ -11,8 +11,6 @@ obj/
 appsettings.Development.json
 appsettings.Production.json
 
-# Entity Framework Core Migrations (optional, depending on your workflow)
-Migrations/
 
 # npm/Yarn (for frontend, if applicable)
 node_modules/
