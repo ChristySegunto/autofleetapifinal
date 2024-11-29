@@ -2,7 +2,7 @@
 bin/
 obj/
 
-# User-specific files
+# User-specific files (IDE-specific)
 .vs/
 .vscode/
 .idea/
@@ -11,14 +11,39 @@ obj/
 appsettings.Development.json
 appsettings.Production.json
 
-# Node.js dependencies
+# Entity Framework Core Migrations (optional, depending on your workflow)
+Migrations/
+
+# npm/Yarn (for frontend, if applicable)
 node_modules/
 
 # System files
-.DS_Store
-Thumbs.db
+.DS_Store          # macOS system files
+Thumbs.db          # Windows thumbnail cache
 
-# IDE-specific files
-*.suo
-*.user
-*.userosscache
+# Visual Studio for Mac
+.vscode/
+
+# ASP.NET Temp Files (if applicable)
+wwwroot/
+
+# DotNet Core Tools (local tools)
+.tools/
+
+# Log files
+*.log
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# IIS Express
+iisexpress/
+
+# JetBrains Rider IDE files
+.idea/
+
+# Linux/Unix system files
+*~
