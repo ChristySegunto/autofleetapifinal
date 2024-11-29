@@ -1,0 +1,24 @@
+# Ignore build results
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+.idea/
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.Production.json
+
+# Node.js dependencies
+node_modules/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+*.suo
+*.user
+*.userosscache
