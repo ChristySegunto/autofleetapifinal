@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.SignalR;
+using autofleetapi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Add this in the service configuration section (where you add other services)
+builder.Services.AddSignalR();
+
+
 
 // Get connection string from environment variable
 var connectionString = Environment.GetEnvironmentVariable("AUTOFLEET_STRING");
@@ -52,6 +59,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+
+
 // CORS middleware
 app.UseCors("AllowReactApp");
 
@@ -70,5 +79,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
+
+
 
 app.Run();

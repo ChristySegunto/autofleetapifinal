@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace autofleetapi.Controllers
 {
     [Route("api/[controller]")]
@@ -188,6 +189,61 @@ namespace autofleetapi.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
+
+        [HttpGet("get-today-schedules")]
+        public IActionResult GetTodaySchedules()
+        {
+            try
+            {
+                // Get today's date
+                var today = DateTime.Today;
+                var yesterday = today.AddDays(-1);
+
+
+                // Fetch rental schedules for today
+                var rentalSchedules = _context.RentedVehicles
+                    .Where(r => r.pickup_date.Date == today)
+                    .Select(r => new RentedScheduleDto
+                    {
+                        VehicleId = r.vehicle_id,
+                        RenterName = r.renter_fname + " " + r.renter_lname, // Concatenate the names
+                        PickupDate = r.pickup_date,
+                        VehicleName = r.car_manufacturer + " " + r.car_model,
+                        Status = r.rent_status,
+
+                    })
+                    .ToList();
+
+                // Fetch maintenance schedules for today
+                var maintenanceSchedules = _context.Maintenances
+                    .Where(m => m.maintenance_due_date.Date == today || m.maintenance_due_date.Date == yesterday) // Filter maintenance by today's due date
+                    .Select(m => new MaintenanceScheduleDto
+                    {
+                        VehicleId = m.vehicle_id,
+                        PlateNumber = m.plate_num,
+                        CarModel = m.car_model,
+                        MaintenanceType = m.maintenance_type,
+                        MaintenanceStatus = m.maintenance_status,
+                        MaintenanceDueDate = m.maintenance_due_date
+                    })
+                    .ToList();
+
+                // Prepare the response
+                var response = new TodaySchedulesResponse
+                {
+                    RentalSchedules = rentalSchedules,
+                    MaintenanceSchedules = maintenanceSchedules
+                };
+
+                return Ok(response); // Return the schedules in the response
+            }
+            catch (Exception ex)
+            {
+                // Handle errors
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 
 }
