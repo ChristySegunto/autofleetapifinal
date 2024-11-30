@@ -29,4 +29,9 @@ public class RentedVehicle
 
     [ForeignKey("vehicle_id")]
     public Vehicle Vehicle { get; set; }
+  
+    // Add this property to concatenate first and last names
+    [NotMapped]
+    public string RenterName => $"{renter_fname} {renter_lname}";
 }
+
