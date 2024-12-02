@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 [Table("rented_vehicle")]
 public class RentedVehicle
@@ -33,5 +34,8 @@ public class RentedVehicle
     // Add this property to concatenate first and last names
     [NotMapped]
     public string RenterName => $"{renter_fname} {renter_lname}";
+
+    [JsonIgnore] 
+    public ICollection<CarUpdate> CarUpdates { get; set; } 
 }
 
