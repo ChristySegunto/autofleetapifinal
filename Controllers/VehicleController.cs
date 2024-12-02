@@ -36,8 +36,8 @@ public class VehicleController : ControllerBase
             v.total_fuel_consumption,
             v.distance_traveled,
             v.vehicle_status,
-            createdAt = v.created_at.ToString("yyyy-MM-dd"),
-            updatedAt = v.updated_at.ToString("yyyy-MM-dd")
+            created_at = v.created_at.ToString("yyyy-MM-ddTHH:mm"),
+            updated_at = v.updated_at.ToString("yyyy-MM-ddTHH:mm")
         }).ToList();
 
         return Ok(vehicleList);
@@ -70,8 +70,8 @@ public class VehicleController : ControllerBase
             vehicle.total_fuel_consumption,
             vehicle.distance_traveled,
             vehicle.vehicle_status,
-            createdAt = vehicle.created_at.ToString("yyyy-MM-dd"),
-            updatedAt = vehicle.updated_at.ToString("yyyy-MM-dd")
+            created_at = vehicle.created_at.ToString("yyyy-MM-ddTHH:mm"),
+            updated_at = vehicle.updated_at.ToString("yyyy-MM-ddTHH:mm")
         });
     }
 
