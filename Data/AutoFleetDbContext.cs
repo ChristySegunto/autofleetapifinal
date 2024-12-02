@@ -66,14 +66,10 @@ public class AutoFleetDbContext : DbContext
             .WithMany()               // A Vehicle can be rented multiple times
             .HasForeignKey(rv => rv.vehicle_id);
 
-       
-            
-    //CAR UPDATE
         modelBuilder.Entity<CarUpdate>()
             .ToTable("realtime_carupdate")
             .HasKey(cu => cu.carupdate_id);
-        
-       
+
 
         modelBuilder.Entity<CarUpdate>()
             .Property(c => c.location_latitude)
