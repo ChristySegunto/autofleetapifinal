@@ -61,7 +61,7 @@ namespace autofleetapi.Controllers
                 return BadRequest("Renter data is null.");
             }
 
-            // Ensure that all necessary fields are provided
+            // Ensure that all necessary field are provided
             if (string.IsNullOrEmpty(renter.renter_fname) ||
                 string.IsNullOrEmpty(renter.renter_mname) ||
                 string.IsNullOrEmpty(renter.renter_lname) ||
