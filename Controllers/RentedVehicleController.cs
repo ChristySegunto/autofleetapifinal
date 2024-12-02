@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Linq;
 
 namespace autofleetapi.Controllers
 {
@@ -17,15 +18,33 @@ namespace autofleetapi.Controllers
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        // GET: api/RentedVehicle
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RentedVehicle>>> GetRentedVehicles()
         {
             try
             {
                 var rentedVehicles = await _context.RentedVehicles
-                    .Include(r => r.Renter)
-                    .Include(v => v.Vehicle)
+                    .Select(rv => new 
+                    {
+                        rv.rented_vehicle_id,
+                        rv.renter_id,
+                        rv.vehicle_id,
+                        rv.renter_fname,
+                        rv.renter_lname,
+                        rv.pickup_date,
+                        rv.pickup_time,
+                        rv.dropoff_date,
+                        rv.dropoff_time,
+                        rv.car_manufacturer,
+                        rv.car_model,
+                        rv.plate_number,
+                        rv.created_at,
+                        rv.updated_at,
+                        rv.rent_status
+                    })
                     .ToListAsync();
+
                 return Ok(rentedVehicles);
             }
             catch (Exception ex)
@@ -34,55 +53,152 @@ namespace autofleetapi.Controllers
             }
         }
 
-[HttpPost("add")]
-public async Task<IActionResult> AddRentedVehicle([FromBody] RentedVehicle rentedVehicle)
-{
+    // POST: api/RentedVehicle/add
+    [HttpPost("add")]
+    public async Task<IActionResult> AddRentedVehicle([FromBody] RentedVehicle rentedVehicle)
+    {
     if (rentedVehicle == null)
     {
-        return BadRequest("Rented vehicle data is null.");
+        return BadRequest("Invalid rented vehicle data.");
     }
 
-    // Log the received data to check for any missing/incorrect fields
-    Console.WriteLine($"Received rented vehicle data: {rentedVehicle.renter_fname}, {rentedVehicle.renter_lname}, {rentedVehicle.pickup_date}, {rentedVehicle.dropoff_date}");
-
-    // Validate fields to ensure all required data is provided
-    if (string.IsNullOrEmpty(rentedVehicle.renter_fname) ||
-        string.IsNullOrEmpty(rentedVehicle.renter_lname) ||
-        rentedVehicle.pickup_date == default ||
-        rentedVehicle.dropoff_date == default ||
-        rentedVehicle.pickup_time == default ||
-        rentedVehicle.dropoff_time == default ||
-        string.IsNullOrEmpty(rentedVehicle.car_manufacturer) ||
-        string.IsNullOrEmpty(rentedVehicle.car_model) ||
-        string.IsNullOrEmpty(rentedVehicle.plate_number) ||
-        string.IsNullOrEmpty(rentedVehicle.rent_status))
+    // Ensure renter_id is provided and exists
+    var renter = await _context.Renters.FindAsync(rentedVehicle.renter_id);
+    if (renter == null)
     {
-        // Log the validation failure details
-        Console.WriteLine("Validation failed for rented vehicle data.");
-        return BadRequest("All fields are required.");
+        return BadRequest("Renter not found.");
     }
 
-    // Set default values for created_at and updated_at if not provided
+    rentedVehicle.renter_fname = renter.renter_fname;
+    rentedVehicle.renter_lname = renter.renter_lname;
+
+    // Ensure vehicle_id is provided and exists
+    var vehicle = await _context.Vehicles.FindAsync(rentedVehicle.vehicle_id);
+    if (vehicle == null)
+    {
+        return BadRequest("Vehicle not found.");
+    }
+
+    rentedVehicle.car_manufacturer = vehicle.car_manufacturer;
+    rentedVehicle.car_model = vehicle.car_model;
+    rentedVehicle.plate_number = vehicle.plate_number;
+
+    // Set the creation and update timestamps
     rentedVehicle.created_at = DateTime.UtcNow;
     rentedVehicle.updated_at = DateTime.UtcNow;
 
-    _context.RentedVehicles.Add(rentedVehicle);
+    // Do not manually set rented_vehicle_id, it will be auto-generated
+    rentedVehicle.rented_vehicle_id = 0;  
 
-    try
-    {
-        // Save changes to the database
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetRentedVehicles), new { id = rentedVehicle.rented_vehicle_id }, rentedVehicle);
-    }
-    catch (Exception ex)
-    {
-        // Log the error if there is an exception during database save
-        Console.WriteLine($"Error saving rented vehicle: {ex.Message}");
-        return StatusCode(StatusCodes.Status500InternalServerError, "Error saving rented vehicle: " + ex.Message);
-    }
+    
+    rentedVehicle.rent_status = "Active";
+
+   
+    _context.RentedVehicles.Add(rentedVehicle);
+    await _context.SaveChangesAsync();
+
+    return Ok(rentedVehicle);
 }
 
 
+        // GET: api/RentedVehicle/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<RentedVehicle>> GetRentedVehicle(int id)
+        {
+            var rentedVehicle = await _context.RentedVehicles
+                .Where(rv => rv.rented_vehicle_id == id)
+                .Select(rv => new
+                {
+                    rv.rented_vehicle_id,
+                    rv.renter_id,
+                    rv.vehicle_id,
+                    rv.renter_fname,
+                    rv.renter_lname,
+                    rv.pickup_date,
+                    rv.pickup_time,
+                    rv.dropoff_date,
+                    rv.dropoff_time,
+                    rv.car_manufacturer,
+                    rv.car_model,
+                    rv.plate_number,
+                    rv.created_at,
+                    rv.updated_at,
+                    rv.rent_status
+                })
+                .FirstOrDefaultAsync();
 
+            if (rentedVehicle == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(rentedVehicle);
+        }
+
+        // PUT: api/RentedVehicle/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRentedVehicle(int id, [FromBody] RentedVehicle rentedVehicle)
+        {
+            if (id != rentedVehicle.rented_vehicle_id)
+            {
+                return BadRequest("Vehicle ID mismatch.");
+            }
+
+            rentedVehicle.updated_at = DateTime.UtcNow;
+
+            _context.Entry(rentedVehicle).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RentedVehicleExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // GET: api/RentedVehicle/latest-id
+        [HttpGet("latest-id")]
+        public async Task<IActionResult> GetLatestRentedVehicleId()
+        {
+            var latestId = await _context.RentedVehicles
+                .OrderByDescending(rv => rv.rented_vehicle_id)  
+                .Select(rv => rv.rented_vehicle_id)             
+                .FirstOrDefaultAsync();
+
+            return Ok(latestId);
+        }
+
+        // DELETE: api/RentedVehicle/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRentedVehicle(int id)
+        {
+            var rentedVehicle = await _context.RentedVehicles.FindAsync(id);
+
+            if (rentedVehicle == null)
+            {
+                return NotFound();
+            }
+
+            _context.RentedVehicles.Remove(rentedVehicle);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool RentedVehicleExists(int id)
+        {
+            return _context.RentedVehicles.Any(e => e.rented_vehicle_id == id);
+        }
     }
 }
