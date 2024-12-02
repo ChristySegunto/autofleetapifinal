@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 public class RentedVehicle
 {
@@ -41,6 +42,11 @@ public class RentedVehicle
 
     [NotMapped]
     public string RenterName => $"{renter_fname} {renter_lname}";
+
+
+    [JsonIgnore] 
+    public ICollection<CarUpdate> CarUpdates { get; set; } 
+
 
     [MaxLength(20)]
     public string rent_status { get; set; } = "Pending"; // Default status

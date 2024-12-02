@@ -47,6 +47,7 @@ namespace autofleetapi.Controllers
                         : ((TimeSpan)rv.pickup_time).ToString("HH:mm:ss"),
                     Status = rv.rent_status,
                     VehicleId = rv.vehicle_id,
+                    RentedVehicleId = rv.rented_vehicle_id,
                 })
                 .ToListAsync();
 
