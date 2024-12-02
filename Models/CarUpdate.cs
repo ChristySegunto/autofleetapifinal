@@ -14,11 +14,11 @@ public class CarUpdate
     public Renter? Renter { get; set; }
     public string renter_fname { get; set; }
     public string renter_lname { get; set; }
-    public decimal location_latitude { get; set; }
-    public decimal location_longitude { get; set; }
-    public decimal speed { get; set; }
-    public decimal total_fuel_consumption { get; set; }
-    public decimal total_distance_travelled { get; set; }
+    public decimal? location_latitude { get; set; }
+    public decimal? location_longitude { get; set; }
+    public decimal? speed { get; set; }
+    public decimal? total_fuel_consumption { get; set; }
+    public decimal? total_distance_travelled { get; set; }
     public DateTime last_update { get; set; }
 
 
