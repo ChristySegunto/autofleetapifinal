@@ -38,6 +38,21 @@ namespace autofleetapi.Controllers
             return Ok(renterList);
         }
 
+         [HttpGet("check-email")]
+    public async Task<IActionResult> CheckEmailUniqueness([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest("Email is required");
+        }
+
+        // Check if email already exists in the database
+        var existingRenter = await _context.Renters
+            .FirstOrDefaultAsync(r => r.renter_email.ToLower() == email.ToLower());
+
+        return Ok(existingRenter == null);
+    }
+
         [HttpPost("addRenter")]
         public async Task<IActionResult> AddRenter([FromBody] Renter renter)
         {
