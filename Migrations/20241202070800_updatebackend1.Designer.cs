@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace autofleetapifinal.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    partial class AutoFleetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241202070800_updatebackend1")]
+    partial class updatebackend1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,10 +79,10 @@ namespace autofleetapifinal.Migrations
                     b.Property<DateTime>("last_update")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("location_latitude")
+                    b.Property<decimal>("location_latitude")
                         .HasColumnType("decimal(18,6)");
 
-                    b.Property<decimal?>("location_longitude")
+                    b.Property<decimal>("location_longitude")
                         .HasColumnType("decimal(18,6)");
 
                     b.Property<int>("rented_vehicle_id")
@@ -96,13 +99,13 @@ namespace autofleetapifinal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("speed")
+                    b.Property<decimal>("speed")
                         .HasColumnType("decimal(18,6)");
 
-                    b.Property<decimal?>("total_distance_travelled")
+                    b.Property<decimal>("total_distance_travelled")
                         .HasColumnType("decimal(18,6)");
 
-                    b.Property<decimal?>("total_fuel_consumption")
+                    b.Property<decimal>("total_fuel_consumption")
                         .HasColumnType("decimal(18,6)");
 
                     b.Property<int>("vehicle_id")
