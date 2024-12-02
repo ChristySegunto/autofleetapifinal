@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 [Table ("realtime_carupdate")]
 public class CarUpdate
@@ -23,8 +24,13 @@ public class CarUpdate
 
 
     public int vehicle_id { get; set; }
+    public int rented_vehicle_id { get; set; }
+    
+    // [JsonIgnore]
+    [ForeignKey("renter_id")]
+    public RentedVehicle? RentedVehicle { get; set; }
 
-    // [ForeignKey("vehicle_id")]
-    // public Vehicle Vehicle { get; set; }
+
     public string carupdate_status { get; set; }
+
 }

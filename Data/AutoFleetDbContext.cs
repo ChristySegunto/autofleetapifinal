@@ -79,8 +79,7 @@ public class AutoFleetDbContext : DbContext
         modelBuilder.Entity<CarUpdate>()
             .ToTable("realtime_carupdate")
             .HasKey(cu => cu.carupdate_id);
-        
-       
+
 
         modelBuilder.Entity<CarUpdate>()
             .Property(c => c.location_latitude)
