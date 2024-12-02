@@ -56,16 +56,26 @@ public class AutoFleetDbContext : DbContext
 
       
 
-    //RENTED VEHICLE
-        modelBuilder.Entity<RentedVehicle>()
-            .ToTable("rented_vehicle")
-            .HasKey(rv => rv.rented_vehicle_id);
+    // RENTED VEHICLE
+    modelBuilder.Entity<RentedVehicle>()
+        .ToTable("rented_vehicle")
+        .HasKey(rv => rv.rented_vehicle_id);
 
-        modelBuilder.Entity<RentedVehicle>()
-            .HasOne(rv => rv.Vehicle) // A rented vehicle corresponds to one Vehicle
-            .WithMany()               // A Vehicle can be rented multiple times
-            .HasForeignKey(rv => rv.vehicle_id);
 
+    modelBuilder.Entity<RentedVehicle>()
+        .HasOne<Vehicle>()
+        .WithMany() 
+        .HasForeignKey(rv => rv.vehicle_id)
+        .OnDelete(DeleteBehavior.Restrict);  
+
+    modelBuilder.Entity<RentedVehicle>()
+        .HasOne<Renter>()
+        .WithMany() 
+        .HasForeignKey(rv => rv.renter_id)
+        .OnDelete(DeleteBehavior.Restrict);
+       
+            
+    //CAR UPDATE
         modelBuilder.Entity<CarUpdate>()
             .ToTable("realtime_carupdate")
             .HasKey(cu => cu.carupdate_id);

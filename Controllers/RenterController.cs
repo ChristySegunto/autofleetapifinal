@@ -22,6 +22,7 @@ namespace autofleetapi.Controllers
         {
             var renterList = _context.Renters.Select(r => new
             {
+                r.renter_id,
                 r.renter_fname,
                 r.renter_mname,
                 r.renter_lname,

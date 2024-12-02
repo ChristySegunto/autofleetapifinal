@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace autofleetapifinal.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    partial class AutoFleetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241201054018_UpdateRentedVehicleModel")]
+    partial class UpdateRentedVehicleModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,9 +84,6 @@ namespace autofleetapifinal.Migrations
 
                     b.Property<decimal>("location_longitude")
                         .HasColumnType("decimal(18,6)");
-
-                    b.Property<int>("rented_vehicle_id")
-                        .HasColumnType("int");
 
                     b.Property<string>("renter_fname")
                         .IsRequired()
@@ -432,19 +432,11 @@ namespace autofleetapifinal.Migrations
 
             modelBuilder.Entity("CarUpdate", b =>
                 {
-                    b.HasOne("RentedVehicle", "RentedVehicle")
-                        .WithMany("CarUpdates")
-                        .HasForeignKey("renter_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Renter", "Renter")
                         .WithMany()
                         .HasForeignKey("renter_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("RentedVehicle");
 
                     b.Navigation("Renter");
                 });
@@ -462,11 +454,6 @@ namespace autofleetapifinal.Migrations
                         .HasForeignKey("vehicle_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("RentedVehicle", b =>
-                {
-                    b.Navigation("CarUpdates");
                 });
 #pragma warning restore 612, 618
         }
