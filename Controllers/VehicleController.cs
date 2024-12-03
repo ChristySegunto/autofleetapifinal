@@ -17,8 +17,8 @@ public class VehicleController : ControllerBase
     }
 
     // GET: api/Vehicle/list
-    [HttpGet("list")]
-    public IActionResult GetVehicleList()
+    [HttpGet("list")] //handles the GET function to 'api/vehicles/list'
+    public IActionResult GetVehicleList() 
     {
         var vehicleList = _context.Vehicles.Select(v => new
         {
@@ -44,7 +44,7 @@ public class VehicleController : ControllerBase
     }
 
     // GET: api/Vehicle/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id}")] //handle GET function for specific vehicle id 
     public async Task<IActionResult> GetVehicleById(int id)
     {
         var vehicle = await _context.Vehicles.FindAsync(id);
@@ -76,7 +76,7 @@ public class VehicleController : ControllerBase
     }
 
     // POST: api/Vehicle
-    [HttpPost]
+    [HttpPost] //handle post request for adding a new vehicle
     public async Task<IActionResult> AddVehicle([FromBody] Vehicle vehicle)
     {
         if (vehicle == null)
@@ -100,7 +100,7 @@ public class VehicleController : ControllerBase
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); //saves new vehicle to database
             return CreatedAtAction(nameof(GetVehicleById), new { id = vehicle.vehicle_id }, vehicle);
         }
         catch (Exception ex)
@@ -110,7 +110,7 @@ public class VehicleController : ControllerBase
     }
 
     // PUT: api/Vehicle/{id}
-    [HttpPut("{id}")]
+    [HttpPut("{id}")] //handle PUT request to update by Vehicle id
     public async Task<IActionResult> UpdateVehicle(int id, [FromBody] Vehicle vehicle)
     {
         if (vehicle == null)
@@ -162,7 +162,7 @@ public class VehicleController : ControllerBase
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); //save updated vehicle info to database
             return Ok(existingVehicle);
         }
         catch (Exception ex)
@@ -172,7 +172,7 @@ public class VehicleController : ControllerBase
     }
 
     // DELETE: api/Vehicle/{id}
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}")] //handle remove request to remove a vehicle by their id
     public async Task<IActionResult> DeleteVehicle(int id)
     {
         var vehicle = await _context.Vehicles.FindAsync(id);
@@ -186,7 +186,7 @@ public class VehicleController : ControllerBase
 
         try
         {
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); //save deletion of vehicle
             return Ok(new { message = "Vehicle deleted successfully." });
         }
         catch (Exception ex)
