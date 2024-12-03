@@ -5,4 +5,6 @@ public class RealTimeCarLocationDTO
     public decimal Speed { get; set; } // in km/h
     public decimal TotalFuelConsumption { get; set; } // in Liters
     public decimal TotalDistanceTravelled { get; set; } // in kilometers
+    public string CarUpdateStatus { get; set; } 
+
 }
