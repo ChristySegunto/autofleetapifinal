@@ -44,6 +44,8 @@ namespace autofleetapi.Controllers
                 return BadRequest(new { Message = "Rented vehicle not found." });
             }
 
+            // Update the rent_status of the rented vehicle
+            rentedVehicle.rent_status = "Ongoing";
             // Set the current timestamp and status
             carUpdate.last_update = DateTime.UtcNow;
             carUpdate.carupdate_status = "Ongoing";
@@ -139,17 +141,29 @@ namespace autofleetapi.Controllers
                 lastUpdate.total_distance_travelled = totalDistanceTraveled;
             }
 
+            // Update the rent_status of the RentedVehicles table to "Completed"
+            var rentedVehicle = await _context.RentedVehicles
+                                            .SingleOrDefaultAsync(rv => rv.rented_vehicle_id == rented_vehicle_id);
+            if (rentedVehicle != null)
+            {
+                rentedVehicle.rent_status = "Completed";
+            }
+            else
+            {
+                return NotFound(new { Message = "Rented vehicle not found." });
+            }
+
             // Save all the changes to the database
             await _context.SaveChangesAsync();
 
-                return Ok(new
-                {
-                    Message = "Trip completed successfully",
-                    TotalFuelConsumption = totalFuelConsumption,
-                    TotalDistanceTraveled = totalDistanceTraveled,
-                    existingUpdates
-                });
-            }
+            return Ok(new
+            {
+                Message = "Trip completed successfully",
+                TotalFuelConsumption = totalFuelConsumption,
+                TotalDistanceTraveled = totalDistanceTraveled,
+                RentStatus = rentedVehicle.rent_status
+            });
+        }
 
         // GET: api/Location/realtime/{rentedVehicleId}
         [HttpGet("realtime/{rentedVehicleId}")]
@@ -163,10 +177,9 @@ namespace autofleetapi.Controllers
 
             if (carUpdate == null)
             {
-                return NotFound(new { message = "The renter has not yet started the trip." });
+                return NotFound(new { message = "The update not found." });
             }
 
-            
 
             // Create and return the DTO
             var carLocation = new RealTimeCarLocationDTO
@@ -182,6 +195,36 @@ namespace autofleetapi.Controllers
             return Ok(carLocation);
         }
 
+        [HttpGet("trip-summary/{rentedVehicleId}")]
+        public async Task<IActionResult> GetTripSummary(int rentedVehicleId)
+        {
+            var carUpdates = await _context.CarUpdates
+                .Where(cu => cu.rented_vehicle_id == rentedVehicleId)
+                .OrderByDescending(cu => cu.last_update) 
+                .ToListAsync();
+            
+            if (carUpdates == null)
+            {
+                return NotFound(new { message = "The update not found." });
+            }
+
+            // Calculate total fuel consumption by summing up all the fuel consumption values
+            decimal totalFuelConsumption = carUpdates
+                .Sum(cu => cu.total_fuel_consumption ?? 0m); // Sum of all fuel consumption values, default to 0 if null
+
+            // Calculate total distance traveled by summing up all the distance traveled values
+            decimal totalDistanceTravelled = carUpdates
+                .Sum(cu => cu.total_distance_travelled ?? 0m); // Sum of all distances, default to 0 if null
+
+            // Create and return the DTO
+            var carLocation = new RealTimeCarLocationDTO
+            {
+                TotalFuelConsumption = totalFuelConsumption,  // Total calculated fuel consumption
+                TotalDistanceTravelled = totalDistanceTravelled, // Total calculated distance traveled
+            };
+
+            return Ok(carLocation);
+        }
     }
 
 
