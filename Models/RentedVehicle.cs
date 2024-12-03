@@ -45,9 +45,9 @@ public class RentedVehicle
 
 
     [JsonIgnore] 
-    public ICollection<CarUpdate> CarUpdates { get; set; } 
+    public ICollection<CarUpdate>? CarUpdates { get; set; } 
 
 
     [MaxLength(20)]
-    public string rent_status { get; set; } = "Pending"; // Default status
+    public string rent_status { get; set; } = "Upcoming"; // Default status
 }

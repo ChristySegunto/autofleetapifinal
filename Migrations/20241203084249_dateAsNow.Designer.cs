@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace autofleetapifinal.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    partial class AutoFleetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241203084249_dateAsNow")]
+    partial class dateAsNow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,8 +259,8 @@ namespace autofleetapifinal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("renter_id_photo_1")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<string>("renter_id_photo_1")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("renter_id_photo_2")
                         .HasColumnType("nvarchar(max)");
@@ -274,9 +277,6 @@ namespace autofleetapifinal.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("renter_id");
-
-                    b.HasIndex("user_id")
-                        .IsUnique();
 
                     b.ToTable("renter", (string)null);
                 });
@@ -366,7 +366,7 @@ namespace autofleetapifinal.Migrations
                     b.Property<DateTime>("created_at")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal?>("distance_traveled")
+                    b.Property<decimal>("distance_traveled")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
@@ -386,13 +386,13 @@ namespace autofleetapifinal.Migrations
                     b.Property<int?>("seating_capacity")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("total_fuel_consumption")
+                    b.Property<decimal>("total_fuel_consumption")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
 
-                    b.Property<decimal?>("total_mileage")
+                    b.Property<decimal>("total_mileage")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
@@ -467,25 +467,9 @@ namespace autofleetapifinal.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Renter", b =>
-                {
-                    b.HasOne("User", "User")
-                        .WithOne("Renter")
-                        .HasForeignKey("Renter", "user_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("RentedVehicle", b =>
                 {
                     b.Navigation("CarUpdates");
-                });
-
-            modelBuilder.Entity("User", b =>
-                {
-                    b.Navigation("Renter");
                 });
 #pragma warning restore 612, 618
         }
