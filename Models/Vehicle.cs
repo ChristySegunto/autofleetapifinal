@@ -18,9 +18,9 @@ public class Vehicle
     public string transmission_type { get; set; }
     public int? seating_capacity { get; set; }
     public string vehicle_category { get; set; }
-    public decimal total_mileage { get; set; }
-    public decimal total_fuel_consumption { get; set; }
-    public decimal distance_traveled { get; set; }
+    public decimal? total_mileage { get; set; }
+    public decimal? total_fuel_consumption { get; set; }
+    public decimal? distance_traveled { get; set; }
     public string vehicle_status { get; set; }
     public DateTime created_at { get; set; }
     public DateTime updated_at { get; set; }
