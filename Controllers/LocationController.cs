@@ -46,6 +46,7 @@ namespace autofleetapi.Controllers
 
             // Update the rent_status of the rented vehicle
             rentedVehicle.rent_status = "Ongoing";
+            vehicle.vehicle_status = "Rented";
             // Set the current timestamp and status
             carUpdate.last_update = DateTime.UtcNow;
             carUpdate.carupdate_status = "Ongoing";
@@ -147,11 +148,24 @@ namespace autofleetapi.Controllers
             if (rentedVehicle != null)
             {
                 rentedVehicle.rent_status = "Completed";
+                
+                // Update the vehicle status to "Available"
+                var vehicle = await _context.Vehicles
+                                            .SingleOrDefaultAsync(v => v.vehicle_id == rentedVehicle.vehicle_id);
+                if (vehicle != null)
+                {
+                    vehicle.vehicle_status = "Available";  // Set the vehicle status to "Available"
+                }
+                else
+                {
+                    return NotFound(new { Message = "Vehicle not found." });
+                }
             }
             else
             {
                 return NotFound(new { Message = "Rented vehicle not found." });
             }
+
 
             // Save all the changes to the database
             await _context.SaveChangesAsync();
@@ -161,7 +175,11 @@ namespace autofleetapi.Controllers
                 Message = "Trip completed successfully",
                 TotalFuelConsumption = totalFuelConsumption,
                 TotalDistanceTraveled = totalDistanceTraveled,
-                RentStatus = rentedVehicle.rent_status
+                RentStatus = rentedVehicle.rent_status,
+                VehicleStatus = _context.Vehicles
+                        .Where(v => v.vehicle_id == rentedVehicle.vehicle_id)
+                        .Select(v => v.vehicle_status)
+                        .FirstOrDefault()
             });
         }
 
