@@ -36,8 +36,8 @@ public class VehicleController : ControllerBase
             v.total_fuel_consumption,
             v.distance_traveled,
             v.vehicle_status,
-            createdAt = v.created_at.ToString("yyyy-MM-dd"),
-            updatedAt = v.updated_at.ToString("yyyy-MM-dd")
+            created_at = v.created_at.ToString("yyyy-MM-dd"),
+            updated_at = v.updated_at.ToString("yyyy-MM-dd")
         }).ToList();
 
         return Ok(vehicleList);
@@ -70,8 +70,8 @@ public class VehicleController : ControllerBase
             vehicle.total_fuel_consumption,
             vehicle.distance_traveled,
             vehicle.vehicle_status,
-            createdAt = vehicle.created_at.ToString("yyyy-MM-dd"),
-            updatedAt = vehicle.updated_at.ToString("yyyy-MM-dd")
+            created_at = vehicle.created_at.ToString("yyyy-MM-dd"),
+            updated_at = vehicle.updated_at.ToString("yyyy-MM-dd")
         });
     }
 
@@ -170,6 +170,41 @@ public class VehicleController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "Error updating vehicle data: " + ex.Message);
         }
     }
+
+    // PUT: api/Vehicle/{id}/status
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateVehicleStatus(int id, [FromBody] string status)
+    {
+        if (string.IsNullOrEmpty(status))
+        {
+            return BadRequest("Status cannot be empty.");
+        }
+
+        // Check if the vehicle exists
+        var vehicle = await _context.Vehicles.FindAsync(id);
+        if (vehicle == null)
+        {
+            return NotFound("Vehicle not found.");
+        }
+
+        // Update the vehicle status
+        vehicle.vehicle_status = status;
+        vehicle.updated_at = DateTime.UtcNow;
+
+        // Log the updated vehicle to check the changes
+        Console.WriteLine($"Updated vehicle: ID = {vehicle.vehicle_id}, Status = {vehicle.vehicle_status}, Updated At = {vehicle.updated_at}");
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Vehicle status updated successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Error updating vehicle status: " + ex.Message);
+        }
+    }
+
 
     // DELETE: api/Vehicle/{id}
     [HttpDelete("{id}")]
