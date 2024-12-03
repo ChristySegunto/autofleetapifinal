@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace autofleetapifinal.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    partial class AutoFleetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241203152058_addeduserinrenter")]
+    partial class addeduserinrenter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,8 +259,8 @@ namespace autofleetapifinal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("renter_id_photo_1")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<string>("renter_id_photo_1")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("renter_id_photo_2")
                         .HasColumnType("nvarchar(max)");
@@ -273,10 +276,12 @@ namespace autofleetapifinal.Migrations
                     b.Property<int>("user_id")
                         .HasColumnType("int");
 
+                    b.Property<int?>("user_id1")
+                        .HasColumnType("int");
+
                     b.HasKey("renter_id");
 
-                    b.HasIndex("user_id")
-                        .IsUnique();
+                    b.HasIndex("user_id1");
 
                     b.ToTable("renter", (string)null);
                 });
@@ -470,10 +475,8 @@ namespace autofleetapifinal.Migrations
             modelBuilder.Entity("Renter", b =>
                 {
                     b.HasOne("User", "User")
-                        .WithOne("Renter")
-                        .HasForeignKey("Renter", "user_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("user_id1");
 
                     b.Navigation("User");
                 });
@@ -481,11 +484,6 @@ namespace autofleetapifinal.Migrations
             modelBuilder.Entity("RentedVehicle", b =>
                 {
                     b.Navigation("CarUpdates");
-                });
-
-            modelBuilder.Entity("User", b =>
-                {
-                    b.Navigation("Renter");
                 });
 #pragma warning restore 612, 618
         }

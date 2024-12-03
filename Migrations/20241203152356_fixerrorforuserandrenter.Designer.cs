@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace autofleetapifinal.Migrations
 {
     [DbContext(typeof(AutoFleetDbContext))]
-    partial class AutoFleetDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241203152356_fixerrorforuserandrenter")]
+    partial class fixerrorforuserandrenter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,8 +259,8 @@ namespace autofleetapifinal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("renter_id_photo_1")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<string>("renter_id_photo_1")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("renter_id_photo_2")
                         .HasColumnType("nvarchar(max)");
@@ -485,7 +488,8 @@ namespace autofleetapifinal.Migrations
 
             modelBuilder.Entity("User", b =>
                 {
-                    b.Navigation("Renter");
+                    b.Navigation("Renter")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

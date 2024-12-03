@@ -31,7 +31,9 @@ namespace autofleetapi.Controllers
                 r.renter_email,
                 r.renter_emergency_contact,
                 r.renter_address,
-                r.renter_id_photo_1
+                // renter_id_photo_1 = r.renter_id_photo_1 != null 
+                //     ? Convert.ToBase64String(r.renter_id_photo_1) // Convert binary to Base64 string
+                //     : null
 
             }).ToList();
 
@@ -69,21 +71,28 @@ namespace autofleetapi.Controllers
                 string.IsNullOrEmpty(renter.renter_contact_num) ||
                 string.IsNullOrEmpty(renter.renter_email) ||
                 string.IsNullOrEmpty(renter.renter_emergency_contact) ||
-                string.IsNullOrEmpty(renter.renter_address) ||
-                string.IsNullOrEmpty(renter.renter_id_photo_1)||
-                renter.user_id == 0
+                string.IsNullOrEmpty(renter.renter_address)
+                // renter.renter_id_photo_1 == null
                 )
             {
                 return BadRequest("All fields are required.");
             }
 
-            // Add the renter data to the database
-            _context.Renters.Add(renter);
+
+             _context.Renters.Add(renter);
 
             try
             {
                 // Save changes to the database
                 await _context.SaveChangesAsync();
+
+                // Now link the renter with the user by updating the user_id
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == renter.renter_email);
+                if (user != null)
+                {
+                    renter.user_id = user.user_id;
+                    await _context.SaveChangesAsync();
+                }
 
                 // Return the newly created renter record as a response
                 return CreatedAtAction(nameof(GetRenterList), new { id = renter.renter_id }, renter);
@@ -92,6 +101,28 @@ namespace autofleetapi.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error saving renter data: " + ex.Message);
             }
+        }
+
+        [HttpPost("addAcc")]
+        public async Task<IActionResult> AddAccount([FromBody] User user)
+        {
+            if (user == null)
+            {
+                return BadRequest("user data is null.");
+            }
+
+            if (string.IsNullOrEmpty(user.Email) ||
+                string.IsNullOrEmpty(user.Password) )
+            {
+                return BadRequest("All fields are required.");
+            }
+
+            // Add the renter data to the database
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetRenterList), new { id = user.user_id }, user);
+
         }
 
     }

@@ -91,7 +91,7 @@ namespace autofleetapi.Controllers
     rentedVehicle.rented_vehicle_id = 0;  
 
     
-    rentedVehicle.rent_status = "Active";
+    rentedVehicle.rent_status = "Upcoming";
 
    
     _context.RentedVehicles.Add(rentedVehicle);

@@ -20,6 +20,11 @@ public class AutoFleetDbContext : DbContext
     //USER
         modelBuilder.Entity<User>()
             .HasKey(u => u.user_id); // Set UserId as the primary key
+    
+        modelBuilder.Entity<Renter>()
+            .HasOne(r => r.User)  // Renter has one User
+            .WithOne(u => u.Renter)  // User has one Renter
+            .HasForeignKey<Renter>(r => r.user_id);  // Explicitly specify the foreign key in Renter
 
     //ADMIN
         modelBuilder.Entity<Admin>()
