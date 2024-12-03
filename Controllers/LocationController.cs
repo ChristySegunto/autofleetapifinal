@@ -175,7 +175,8 @@ namespace autofleetapi.Controllers
                 LocationLongitude = carUpdate.location_longitude ?? 0m, // Default to 0.0 if NULL
                 Speed = carUpdate.speed ?? 0m,  // Default to 0.0 if NULL
                 TotalFuelConsumption = carUpdate.total_fuel_consumption ?? 0m,  // Default to 0.0 if NULL
-                TotalDistanceTravelled = carUpdate.total_distance_travelled ?? 0m  // Default to 0.0 if NULL
+                TotalDistanceTravelled = carUpdate.total_distance_travelled ?? 0m,  // Default to 0.0 if NULL
+                CarUpdateStatus = carUpdate.carupdate_status
             };
 
             return Ok(carLocation);
