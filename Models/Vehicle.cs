@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+//maps this table to the database of the system
 
 [Table("vehicle")]
 public class Vehicle
