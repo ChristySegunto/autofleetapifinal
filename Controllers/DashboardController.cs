@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace autofleetapi.Controllers
 {
+    // Define the route for the controller
     [Route("api/[controller]")]
     [ApiController]
     
@@ -12,20 +13,23 @@ namespace autofleetapi.Controllers
 
         private readonly AutoFleetDbContext _context;
 
+        // Constructor that accepts AutoFleetDbContext for querying the database
         public DashboardController(AutoFleetDbContext context)
         {
+            // Throw an exception if the context is null
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         // GET: api/Dashboard/get-admin-details
+        // Fetch details of the logged-in admin based on userId
         [HttpGet("get-admin-details")]
         public async Task<IActionResult> GetLoggedInAdmin([FromQuery] int userId)
         {
             try
             {
 
-
-                if (userId <= 0) // Check if the userId is valid
+                // Check if the userId is valid
+                if (userId <= 0)
                 {
                     return BadRequest("Invalid user ID.");
                 }
@@ -35,11 +39,13 @@ namespace autofleetapi.Controllers
                     .Include(a => a.User)
                     .FirstOrDefaultAsync(a => a.user_id == userId);
 
+                // Return NotFound if admin or associated user doesn't exist
                 if (admin == null || admin.User == null)
                 {
                     return NotFound("Admin or associated user not found.");
                 }
 
+                // Return the admin details in the response
                 return Ok(new
                 {
                     AdminId = admin.admin_id,
@@ -50,27 +56,33 @@ namespace autofleetapi.Controllers
                 });
             }
             catch (Exception ex)
-            {
+            { // Log the exception and return a 500 status code with a message
                 Console.WriteLine($"Error: {ex.Message}");
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
+        // GET: api/Dashboard/vehicleslist
+        // Fetch the list of all vehicles in the database
         [HttpGet("vehicleslist")]
         public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehicles()
         {
             try
             {
+                // Fetch all vehicles from the database
                 var vehicles = await _context.Vehicles.ToListAsync();
-                return Ok(vehicles);
+                return Ok(vehicles); // Return the vehicles list
             }
+
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
         // GET: api/Dashboard/Count
+        // Fetch the total number of vehicles in the system
         [HttpGet("Count")]
         public async Task<ActionResult<int>> GetTotalVehiclesCount()
         {
@@ -78,15 +90,17 @@ namespace autofleetapi.Controllers
             {
                 // Get the count of total vehicles
                 int totalCount = await _context.Vehicles.CountAsync();
-                return Ok(totalCount);
+                return Ok(totalCount); // Return the count of vehicles
             }
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
         // GET: api/Dashboard/StatusCount
+        // Fetch the count of vehicles by its status 
         [HttpGet("StatusCount")]
         public async Task<ActionResult<object>> GetVehiclesStatusCount()
         {
@@ -107,6 +121,7 @@ namespace autofleetapi.Controllers
                     .Where(v => v.vehicle_status == "Under Maintenance")
                     .CountAsync();
 
+                // Return the counts for each status in an anonymous object
                 var statusCounts = new
                 {
                     Available = availableCount,
@@ -118,11 +133,13 @@ namespace autofleetapi.Controllers
             }
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
         // GET: api/Vehicles/CategoryCount
+        // Fetch the count of vehicles by its category
         [HttpGet("CategoryCount")]
         public async Task<ActionResult<object>> GetVehiclesCategoryCount()
         {
@@ -143,6 +160,7 @@ namespace autofleetapi.Controllers
                     .Where(v => v.vehicle_category == "Sedan")
                     .CountAsync();
 
+                // Return the counts for each category
                 var categoryCounts = new
                 {
                     SUV = suvCount,
@@ -151,13 +169,17 @@ namespace autofleetapi.Controllers
                 };
 
                 return Ok(categoryCounts);
+
             }
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
+        // GET: api/Dashboard/RecentBookings
+        // Fetch the recent bookings from the RentedVehicles table
         [HttpGet("RecentBookings")]
         public async Task<ActionResult<IEnumerable<RentedVehicle>>> GetRecentBookings()
         {
@@ -176,6 +198,7 @@ namespace autofleetapi.Controllers
                     })
                     .ToListAsync();
 
+                // If no bookings found, return NotFound
                 if (recentBookings == null || !recentBookings.Any())
                 {
                     return NotFound("No recent bookings found.");
@@ -204,31 +227,17 @@ namespace autofleetapi.Controllers
                 // Save changes to the database
                 await _context.SaveChangesAsync();
 
-                // Return the updated bookings and their statuses, but limit to 5 when displaying
-                // return Ok(new 
-                // {
-                //     RecentBookings = recentBookings.Select(booking => new 
-                //     {
-                //         booking.vehicle_id,
-                //         booking.renter_fname,
-                //         booking.pickup_date,
-                //         booking.dropoff_date,
-                //         booking.rent_status,
-                //         vehicle_status = _context.Vehicles
-                //             .Where(v => v.vehicle_id == booking.vehicle_id)
-                //             .Select(v => v.vehicle_status)
-                //             .FirstOrDefault()
-                //     })                
-                // });
-
-                return Ok(recentBookings);
+                return Ok(recentBookings); // Return the list of recent bookings
             }
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
 
+        // GET: api/Dashboard/get-today-schedules
+        // Fetch rental and maintenance schedules for today and yesterday
         [HttpGet("get-today-schedules")]
         public IActionResult GetTodaySchedules()
         {
@@ -283,6 +292,8 @@ namespace autofleetapi.Controllers
             }
         }
 
+        // GET: api/Dashboard/Reports
+        // Fetch all reports from the database
         [HttpGet("Reports")]
         public async Task<ActionResult<IEnumerable<Report>>> GetReports()
         {
@@ -291,6 +302,7 @@ namespace autofleetapi.Controllers
                 // Fetch reports from the database
                 var reports = await _context.Reports.ToListAsync();
 
+                // If no reports found, return NotFound
                 if (reports == null || reports.Count == 0)
                 {
                     return NotFound("No reports found.");
@@ -300,6 +312,7 @@ namespace autofleetapi.Controllers
             }
             catch (Exception ex)
             {
+                // Handle errors and return 500 status code
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

@@ -24,9 +24,11 @@ var connectionString = Environment.GetEnvironmentVariable("AUTOFLEET_STRING");
 
 if (string.IsNullOrEmpty(connectionString))
 {
+    // If the environment variable is not found, fallback to the connection string in appsettings.json
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection"); // Fallback to appsettings.json
     if (string.IsNullOrEmpty(connectionString))
     {
+        // Throw an exception if no connection string is found
         throw new InvalidOperationException("Connection string is not set in environment variable or appsettings.json.");
     }
 }
@@ -46,41 +48,45 @@ builder.Services.AddCors(options =>
 });
 
 // Swagger configuration
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer(); // Adds API documentation support
 builder.Services.AddSwaggerGen(c =>
 {
+    // Configure Swagger UI for API documentation
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AutoFleet API", Version = "v1" });
 });
 
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();  // Ensure endpoints are properly documented for Swagger
+builder.Services.AddSwaggerGen(); // Generate Swagger definitions for API
 
 var app = builder.Build();
 
 
 
-// CORS middleware
+// CORS middleware: Applies the CORS policy to incoming requests
 app.UseCors("AllowReactApp");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Enable Swagger UI in development environment for testing and exploration
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage();
+    app.UseDeveloperExceptionPage(); // Show detailed error pages in development
 }
 
-app.UseCors();
+app.UseCors(); // Apply CORS middleware globally
 
-app.UseHttpsRedirection();
+app.UseHttpsRedirection(); // Redirect HTTP requests to HTTPS
 
-app.UseAuthorization();
+app.UseAuthorization(); // Enable authorization middleware
 
+// Map controllers to routes
 app.MapControllers();
+
+// Map SignalR hubs for real-time communication
 app.MapHub<NotificationHub>("/notificationHub");
 
 
 
-app.Run();
+app.Run(); // Run the application

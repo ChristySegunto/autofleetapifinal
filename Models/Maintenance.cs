@@ -18,7 +18,4 @@ public class Maintenance
 
     public DateTime maintenance_next_due_date { get; set; }  // maintenance_due_date
 
-    // Navigation property to the Vehicle entity (if needed)
-    // [ForeignKey("vehicle_id")]
-    // public Vehicle Vehicle { get; set; }  
 }

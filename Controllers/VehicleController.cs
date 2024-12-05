@@ -11,15 +11,18 @@ public class VehicleController : ControllerBase
 {
     private readonly AutoFleetDbContext _context;
 
+    // Constructor initializes the controller with the database context
     public VehicleController(AutoFleetDbContext context)
     {
-        _context = context;
+        _context = context; // Assign the database context to interact with the Vehicles table
     }
 
     // GET: api/Vehicle/list
+    // Retrieves a list of all vehicles from the database
     [HttpGet("list")]
     public IActionResult GetVehicleList()
     {
+        // Select vehicle details from the Vehicles table and format the date and time fields
         var vehicleList = _context.Vehicles.Select(v => new
         {
             v.vehicle_id,
@@ -36,24 +39,29 @@ public class VehicleController : ControllerBase
             v.total_fuel_consumption,
             v.distance_traveled,
             v.vehicle_status,
-            created_at = v.created_at.ToString("yyyy-MM-dd"),
-            updated_at = v.updated_at.ToString("yyyy-MM-dd")
+            created_at = v.created_at.ToString("yyyy-MM-dd"), // Format created_at as string
+            updated_at = v.updated_at.ToString("yyyy-MM-dd") // Format updated_at as string
         }).ToList();
 
+        // Return the list of vehicles as a successful response
         return Ok(vehicleList);
     }
 
     // GET: api/Vehicle/{id}
+    // Retrieves the details of a specific vehicle by its ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVehicleById(int id)
     {
+        // Find the vehicle by ID
         var vehicle = await _context.Vehicles.FindAsync(id);
 
+        // Return an error if the vehicle is not found
         if (vehicle == null)
         {
             return NotFound("Vehicle not found.");
         }
 
+        // Return the vehicle details as a successful response
         return Ok(new
         {
             vehicle.vehicle_id,
@@ -76,15 +84,17 @@ public class VehicleController : ControllerBase
     }
 
     // POST: api/Vehicle
+    // Adds a new vehicle to the system
     [HttpPost]
     public async Task<IActionResult> AddVehicle([FromBody] Vehicle vehicle)
     {
+        // Check if the vehicle data is null
         if (vehicle == null)
         {
             return BadRequest("Vehicle data is null.");
         }
 
-        // Validate required fields
+        // Validate that required fields are provided
         if (string.IsNullOrEmpty(vehicle.car_manufacturer) ||
             string.IsNullOrEmpty(vehicle.car_model) ||
             string.IsNullOrEmpty(vehicle.plate_number) ||
@@ -93,26 +103,34 @@ public class VehicleController : ControllerBase
             return BadRequest("Required fields are missing.");
         }
 
+        // Set creation and update timestamps to the current UTC time
         vehicle.created_at = DateTime.UtcNow;
         vehicle.updated_at = DateTime.UtcNow;
 
+        // Add the vehicle to the Vehicles table
         _context.Vehicles.Add(vehicle);
 
         try
         {
+            // Save the changes to the database
             await _context.SaveChangesAsync();
+
+            // Return the newly created vehicle with its ID in the response
             return CreatedAtAction(nameof(GetVehicleById), new { id = vehicle.vehicle_id }, vehicle);
         }
         catch (Exception ex)
         {
+            // Return a server error if something goes wrong while saving
             return StatusCode(StatusCodes.Status500InternalServerError, "Error saving vehicle data: " + ex.Message);
         }
     }
 
     // PUT: api/Vehicle/{id}
+    // Updates the details of an existing vehicle by its ID
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateVehicle(int id, [FromBody] Vehicle vehicle)
     {
+        // Check if the vehicle data is null
         if (vehicle == null)
         {
             return BadRequest("Vehicle data is null.");
@@ -139,6 +157,7 @@ public class VehicleController : ControllerBase
             .Where(v => v.plate_number == vehicle.plate_number && v.vehicle_id != id)
             .FirstOrDefaultAsync();
 
+        // Return an error if the plate number is already used by another vehicle
         if (existingPlate != null)
         {
             return BadRequest("The plate number is already in use by another vehicle.");
@@ -162,19 +181,24 @@ public class VehicleController : ControllerBase
 
         try
         {
+            // Save the changes to the database
             await _context.SaveChangesAsync();
+            // Return the updated vehicle details
             return Ok(existingVehicle);
         }
         catch (Exception ex)
         {
+            // Return a server error if something goes wrong while updating
             return StatusCode(StatusCodes.Status500InternalServerError, "Error updating vehicle data: " + ex.Message);
         }
     }
 
     // PUT: api/Vehicle/{id}/status
+    // Updates the status of a vehicle by its ID
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateVehicleStatus(int id, [FromBody] string status)
     {
+        // Check if the status is provided
         if (string.IsNullOrEmpty(status))
         {
             return BadRequest("Status cannot be empty.");
@@ -196,36 +220,46 @@ public class VehicleController : ControllerBase
 
         try
         {
+            // Save the changes to the database
             await _context.SaveChangesAsync();
+            // Return a success message
             return Ok(new { message = "Vehicle status updated successfully." });
         }
         catch (Exception ex)
         {
+            // Return a server error if something goes wrong while updating
             return StatusCode(StatusCodes.Status500InternalServerError, "Error updating vehicle status: " + ex.Message);
         }
     }
 
 
     // DELETE: api/Vehicle/{id}
+    // Deletes a vehicle by its ID
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
+        // Find the vehicle by its ID
         var vehicle = await _context.Vehicles.FindAsync(id);
 
+        // Return an error if the vehicle is not found
         if (vehicle == null)
         {
             return NotFound("Vehicle not found.");
         }
 
+        // Remove the vehicle from the Vehicles table
         _context.Vehicles.Remove(vehicle);
 
         try
         {
+            // Save the changes to the database
             await _context.SaveChangesAsync();
+            // Return a success message upon deletion
             return Ok(new { message = "Vehicle deleted successfully." });
         }
         catch (Exception ex)
         {
+            // Return a server error if something goes wrong while deleting
             return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting vehicle: " + ex.Message);
         }
     }
