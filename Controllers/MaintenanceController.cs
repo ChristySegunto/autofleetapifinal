@@ -134,6 +134,30 @@ public class MaintenanceController : ControllerBase
         return Ok(existingMaintenance);
     }
 
+    [HttpDelete("delete/{maintenance_id}")]
+    public async Task<IActionResult> DeleteMaintenance(int maintenance_id)
+    {
+        var maintenance = await _context.Maintenances.FindAsync(maintenance_id);
+
+        if (maintenance == null)
+        {
+            return NotFound($"Maintenance record with ID {maintenance_id} not found.");
+        }
+
+        _context.Maintenances.Remove(maintenance);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Maintenance record deleted successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"Error deleting maintenance record: {ex.Message}");
+        }
+    }
+
+
 
 
 
