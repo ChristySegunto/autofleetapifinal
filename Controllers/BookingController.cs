@@ -24,7 +24,7 @@ namespace autofleetapi.Controllers
             switch (status.ToLower())
             {
                 case "upcoming":
-                    query = query.Where(rv => rv.pickup_date > DateTime.Now || rv.rent_status == "Upcoming");
+                    query = query.Where(rv => rv.rent_status == "Upcoming");
                     break;
                 case "completed":
                     query = query.Where(rv => rv.rent_status == "Completed");

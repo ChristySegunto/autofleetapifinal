@@ -36,7 +36,7 @@ namespace autofleetapi.Controllers
                     {
                         // Count the number of rented vehicles for this renter
                         var rentedVehicleCount = _context.RentedVehicles.Count(rv => rv.renter_id == renter.renter_id);
-                        var upcomingRentCount = _context.RentedVehicles.Count(rv => rv.renter_id == renter.renter_id && rv.pickup_date > DateTime.Now);
+                        var upcomingRentCount = _context.RentedVehicles.Count(rv => rv.renter_id == renter.renter_id && rv.rent_status == "Upcoming");
 
                         return Ok(new
                         {

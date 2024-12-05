@@ -166,7 +166,6 @@ namespace autofleetapi.Controllers
                 // Fetch the recent bookings from the database, sorted by StartDate
                 var recentBookings = await _context.RentedVehicles
                     .OrderByDescending(b => b.pickup_date) // Sort by StartDate to get recent bookings first
-                    .Take(5) // Limit the number of results to 5 (optional)
                     .Select(b => new
                     {
                         b.vehicle_id,
@@ -181,6 +180,46 @@ namespace autofleetapi.Controllers
                 {
                     return NotFound("No recent bookings found.");
                 }
+
+                // Get today's date for comparison
+                var today = DateTime.Today;
+
+
+                // Check for bookings with a pickup_date that is today or in the future and update vehicle status
+                foreach (var booking in recentBookings)
+                {
+                    if (booking.pickup_date >= today)  // If pickup_date is today or in the future
+                    {
+                        var vehicle = await _context.Vehicles
+                            .FirstOrDefaultAsync(v => v.vehicle_id == booking.vehicle_id);
+
+                        if (vehicle != null)
+                        {
+                            vehicle.vehicle_status = "Rented";  // Update the vehicle status
+                        }
+
+                    }
+                }
+
+                // Save changes to the database
+                await _context.SaveChangesAsync();
+
+                // Return the updated bookings and their statuses, but limit to 5 when displaying
+                // return Ok(new 
+                // {
+                //     RecentBookings = recentBookings.Select(booking => new 
+                //     {
+                //         booking.vehicle_id,
+                //         booking.renter_fname,
+                //         booking.pickup_date,
+                //         booking.dropoff_date,
+                //         booking.rent_status,
+                //         vehicle_status = _context.Vehicles
+                //             .Where(v => v.vehicle_id == booking.vehicle_id)
+                //             .Select(v => v.vehicle_status)
+                //             .FirstOrDefault()
+                //     })                
+                // });
 
                 return Ok(recentBookings);
             }
@@ -244,6 +283,26 @@ namespace autofleetapi.Controllers
             }
         }
 
+        [HttpGet("Reports")]
+        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        {
+            try
+            {
+                // Fetch reports from the database
+                var reports = await _context.Reports.ToListAsync();
+
+                if (reports == null || reports.Count == 0)
+                {
+                    return NotFound("No reports found.");
+                }
+
+                return Ok(reports); // Return the reports as JSON
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 
 }

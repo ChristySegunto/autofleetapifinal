@@ -46,6 +46,7 @@ namespace autofleetapi.Controllers
 
             // Update the rent_status of the rented vehicle
             rentedVehicle.rent_status = "Ongoing";
+            vehicle.vehicle_status = "Rented";
             // Set the current timestamp and status
             carUpdate.last_update = DateTime.UtcNow;
             carUpdate.carupdate_status = "Ongoing";
@@ -59,56 +60,13 @@ namespace autofleetapi.Controllers
         }
 
 
-        // [HttpPost("update-location")]
-        // public async Task<IActionResult> UpdateLocation([FromBody] CarUpdate carUpdate)
-        // {
-        //     // Validate that vehicle exists
-        //     var vehicle = await _context.Vehicles.SingleOrDefaultAsync(v => v.vehicle_id == carUpdate.vehicle_id);
-        //     if (vehicle == null)
-        //     {
-        //         return BadRequest(new { Message = "Vehicle not found." });
-        //     }
-
-        //     // Validate that renter exists
-        //     var renter = await _context.Renters.SingleOrDefaultAsync(r => r.renter_id == carUpdate.renter_id);
-        //     if (renter == null)
-        //     {
-        //         return BadRequest(new { Message = "Renter not found." });
-        //     }
-
-        //     // Validate rented vehicle exists
-        //     var rentedVehicle = await _context.RentedVehicles.SingleOrDefaultAsync(rv => rv.rented_vehicle_id == carUpdate.rented_vehicle_id);
-        //     if (rentedVehicle == null)
-        //     {
-        //         return BadRequest(new { Message = "Rented vehicle not found." });
-        //     }
-
-        //     carUpdate.total_fuel_consumption = 0m;
-        //     carUpdate.total_distance_travelled = 0m;
-
-        //     // Create a new CarUpdate record (i.e., insert a new row in the database)
-        //     carUpdate.last_update = DateTime.UtcNow;  // Set the current timestamp for the update
-        //     carUpdate.carupdate_status = "Ongoing"; // Ensure the trip is ongoing
-
-
-        //     // Add the new CarUpdate record to the database
-        //     await _context.CarUpdates.AddAsync(carUpdate);
-            
-        //     // Save the changes to the database
-        //     await _context.SaveChangesAsync();
-
-        //     // Return a success response with the new CarUpdate data
-        //     return Ok(new { Message = "Location updated successfully", carUpdate });
-        // }
-
-        // End the trip: Mark the trip as completed and stop updates
         [HttpPut("end-trip/{rented_vehicle_id}")]
         public async Task<IActionResult> EndTrip([FromRoute] int rented_vehicle_id)
         {
             // Retrieve all updates with the same rented_vehicle_id
             var existingUpdates = await _context.CarUpdates
-                                                .Where(u => u.rented_vehicle_id == rented_vehicle_id)
-                                                .ToListAsync();
+                .Where(u => u.rented_vehicle_id == rented_vehicle_id && u.carupdate_status == "Ongoing")
+                .ToListAsync();
 
             // If no records are found
             if (!existingUpdates.Any())
@@ -116,15 +74,42 @@ namespace autofleetapi.Controllers
                 return NotFound(new { Message = "No car updates found for the given rented vehicle ID." });
             }
 
-            // Calculate the total fuel consumption and total distance traveled
+            // Calculate the total distance travelled and total fuel consumption
+            decimal totalDistanceTravelled = 0m;
             decimal totalFuelConsumption = 0m;
-            decimal totalDistanceTraveled = 0m;
+            decimal fuelEfficiency = 0.8m;  // Example value, assuming 12 liters per 100 km
 
-            foreach (var update in existingUpdates)
+            for (int i = 1; i < existingUpdates.Count; i++)
             {
-                totalFuelConsumption += update.total_fuel_consumption ?? 0m; // Sum of fuel consumption from each update
-                totalDistanceTraveled += update.total_distance_travelled ?? 0m; // Sum of distance traveled from each update
+                var previousUpdate = existingUpdates[i - 1];
+                var currentUpdate = existingUpdates[i];
+
+                if (previousUpdate.location_latitude.HasValue && previousUpdate.location_longitude.HasValue &&
+                    currentUpdate.location_latitude.HasValue && currentUpdate.location_longitude.HasValue)
+                {
+                    // Convert latitudes and longitudes from decimal to radians
+                    var lat1 = ToRadians((double)previousUpdate.location_latitude.Value);
+                    var lon1 = ToRadians((double)previousUpdate.location_longitude.Value);
+                    var lat2 = ToRadians((double)currentUpdate.location_latitude.Value);
+                    var lon2 = ToRadians((double)currentUpdate.location_longitude.Value);
+
+                    // Calculate the Haversine distance
+                    var dLat = lat2 - lat1;
+                    var dLon = lon2 - lon1;
+
+                    var a = Math.Pow(Math.Sin(dLat / 2), 2) +
+                            Math.Cos(lat1) * Math.Cos(lat2) * Math.Pow(Math.Sin(dLon / 2), 2);
+
+                    var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                    var earthRadiusKm = 6371; // Radius of Earth in kilometers
+
+                    var distance = earthRadiusKm * c; // Distance in kilometers
+                    totalDistanceTravelled += (decimal)distance;
+                }
             }
+
+            // Calculate total fuel consumption based on distance and fuel efficiency
+            totalFuelConsumption = (totalDistanceTravelled * fuelEfficiency) / 100; // Assuming liters per 100 km
 
             // Update the carupdate_status for all matching records to "Completed"
             foreach (var update in existingUpdates)
@@ -133,20 +118,29 @@ namespace autofleetapi.Controllers
                 update.last_update = DateTime.UtcNow;  // Update the last update timestamp
             }
 
-            // Add final fuel consumption and distance traveled data to the last update
-            var lastUpdate = existingUpdates.OrderByDescending(cu => cu.last_update).FirstOrDefault();
-            if (lastUpdate != null)
-            {
-                lastUpdate.total_fuel_consumption = totalFuelConsumption;
-                lastUpdate.total_distance_travelled = totalDistanceTraveled;
-            }
-
             // Update the rent_status of the RentedVehicles table to "Completed"
             var rentedVehicle = await _context.RentedVehicles
-                                            .SingleOrDefaultAsync(rv => rv.rented_vehicle_id == rented_vehicle_id);
+                                                .SingleOrDefaultAsync(rv => rv.rented_vehicle_id == rented_vehicle_id);
             if (rentedVehicle != null)
             {
                 rentedVehicle.rent_status = "Completed";
+
+                // Update the vehicle status to "Available"
+                var vehicle = await _context.Vehicles
+                                            .SingleOrDefaultAsync(v => v.vehicle_id == rentedVehicle.vehicle_id);
+                if (vehicle != null)
+                {
+                    vehicle.vehicle_status = "Available";  // Set the vehicle status to "Available"
+
+                    // Update the Vehicle's totals
+                    vehicle.total_mileage = (vehicle.total_mileage ?? 0m) + totalDistanceTravelled;
+                    vehicle.total_fuel_consumption = (vehicle.total_fuel_consumption ?? 0m) + totalFuelConsumption;
+                    vehicle.updated_at = DateTime.UtcNow;
+                }
+                else
+                {
+                    return NotFound(new { Message = "Vehicle not found." });
+                }
             }
             else
             {
@@ -159,11 +153,16 @@ namespace autofleetapi.Controllers
             return Ok(new
             {
                 Message = "Trip completed successfully",
-                TotalFuelConsumption = totalFuelConsumption,
-                TotalDistanceTraveled = totalDistanceTraveled,
-                RentStatus = rentedVehicle.rent_status
+                RentStatus = rentedVehicle.rent_status,
+                VehicleStatus = _context.Vehicles
+                            .Where(v => v.vehicle_id == rentedVehicle.vehicle_id)
+                            .Select(v => v.vehicle_status)
+                            .FirstOrDefault(),
+                TotalDistanceTravelled = totalDistanceTravelled,
+                TotalFuelConsumption = totalFuelConsumption
             });
         }
+
 
         // GET: api/Location/realtime/{rentedVehicleId}
         [HttpGet("realtime/{rentedVehicleId}")]
@@ -203,29 +202,65 @@ namespace autofleetapi.Controllers
                 .OrderByDescending(cu => cu.last_update) 
                 .ToListAsync();
             
-            if (carUpdates == null)
+            if (carUpdates == null || carUpdates.Count < 2)
             {
-                return NotFound(new { message = "The update not found." });
+                return NotFound(new { message = "Insufficient data to compute distance and fuel consumption." });
             }
 
-            // Calculate total fuel consumption by summing up all the fuel consumption values
-            decimal totalFuelConsumption = carUpdates
-                .Sum(cu => cu.total_fuel_consumption ?? 0m); // Sum of all fuel consumption values, default to 0 if null
+            decimal totalDistanceTravelled = 0m;
+            decimal fuelEfficiency = 0.8m; //0.8 Liter per 100km
 
-            // Calculate total distance traveled by summing up all the distance traveled values
-            decimal totalDistanceTravelled = carUpdates
-                .Sum(cu => cu.total_distance_travelled ?? 0m); // Sum of all distances, default to 0 if null
-
-            // Create and return the DTO
-            var carLocation = new RealTimeCarLocationDTO
+            for (int i = 1; i < carUpdates.Count; i++)
             {
-                TotalFuelConsumption = totalFuelConsumption,  // Total calculated fuel consumption
-                TotalDistanceTravelled = totalDistanceTravelled, // Total calculated distance traveled
-            };
+                var previousUpdate = carUpdates[i - 1];
+                var currentUpdate = carUpdates[i];
 
-            return Ok(carLocation);
+                if (previousUpdate.location_latitude.HasValue && previousUpdate.location_longitude.HasValue &&
+                    currentUpdate.location_latitude.HasValue && currentUpdate.location_longitude.HasValue)
+                {
+                    // Convert latitudes and longitudes from decimal to radians
+                    var lat1 = ToRadians((double)previousUpdate.location_latitude.Value);
+                    var lon1 = ToRadians((double)previousUpdate.location_longitude.Value);
+                    var lat2 = ToRadians((double)currentUpdate.location_latitude.Value);
+                    var lon2 = ToRadians((double)currentUpdate.location_longitude.Value);
+
+                    // Calculate the Haversine distance
+                    var dLat = lat2 - lat1;
+                    var dLon = lon2 - lon1;
+
+                    var a = Math.Pow(Math.Sin(dLat / 2), 2) +
+                            Math.Cos(lat1) * Math.Cos(lat2) * Math.Pow(Math.Sin(dLon / 2), 2);
+
+                    var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                    var earthRadiusKm = 6371; // Radius of Earth in kilometers
+
+                    var distance = earthRadiusKm * c; // Distance in kilometers
+                    totalDistanceTravelled += (decimal)distance;
+                }
+            }
+
+            // Calculate total fuel consumption based on distance and fuel efficiency
+            var totalFuelConsumption = (totalDistanceTravelled * fuelEfficiency) / 100; // Assuming liters per 100 km
+
+
+            // Return the computed summary
+            return Ok(new
+            {
+                RentedVehicleId = rentedVehicleId,
+                TotalDistanceTravelled = totalDistanceTravelled,
+                TotalFuelConsumption = totalFuelConsumption,
+            });
+
+        }
+
+        // Helper method to convert degrees to radians
+        private double ToRadians(double angleInDegrees)
+        {
+            return angleInDegrees * (Math.PI / 180);
         }
     }
+
+    
 
 
     
